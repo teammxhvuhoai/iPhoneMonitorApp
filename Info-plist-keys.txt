@@ -1,7 +1,0 @@
-Thêm 2 khoá sau vào Info (Target > Info > Custom iOS Target Properties):
-
-1) Privacy - Local Network Usage Description   (NSLocalNetworkUsageDescription)
-   Giá trị: "Cho phép PC của bạn đọc thông số iPhone trong mạng nội bộ."
-
-2) Bonjour services   (NSBonjourServices)   - kiểu Array
-   Item 0: _iphonemonitor._tcp
