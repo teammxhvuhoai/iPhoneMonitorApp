@@ -1,0 +1,29 @@
+name: iPhoneMonitor
+options:
+  bundleIdPrefix: com.example
+  deploymentTarget:
+    iOS: "15.0"
+targets:
+  iPhoneMonitor:
+    type: application
+    platform: iOS
+    sources:
+      - path: iPhoneMonitorApp
+        excludes:
+          - "Info-plist-keys.txt"
+    info:
+      path: iPhoneMonitorApp/Info.plist
+      properties:
+        CFBundleDisplayName: iPhone Monitor
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        NSLocalNetworkUsageDescription: Cho phép PC của bạn đọc thông số iPhone trong mạng nội bộ.
+        NSBonjourServices:
+          - _iphonemonitor._tcp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.iphonemonitor
+        SWIFT_VERSION: "5.0"
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
