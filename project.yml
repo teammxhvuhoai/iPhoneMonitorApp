@@ -8,11 +8,12 @@ targets:
     type: application
     platform: iOS
     sources:
-      - path: iPhoneMonitorApp
+      - path: .
         excludes:
           - "Info-plist-keys.txt"
+          - "Info.plist"
     info:
-      path: iPhoneMonitorApp/Info.plist
+      path: Info.plist
       properties:
         CFBundleDisplayName: iPhone Monitor
         UILaunchScreen: {}
