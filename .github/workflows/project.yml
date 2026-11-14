@@ -1,39 +1,63 @@
-name: iPhoneMonitor
+name: Build iOS (IPA chưa ký)
 
-options:
-  bundleIdPrefix: com.iphonemonitor
-  deploymentTarget:
-    iOS: "15.0"
-  createIntermediateGroups: true
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
 
-settings:
-  base:
-    SWIFT_VERSION: "5.0"
-    MARKETING_VERSION: "1.0"
-    CURRENT_PROJECT_VERSION: "1"
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Lấy mã nguồn
+        uses: actions/checkout@v4
 
-targets:
-  iPhoneMonitor:
-    type: application
-    platform: iOS
-    sources:
-      - path: iPhoneMonitorApp
-        excludes:
-          - "Info-plist-keys.txt"
-    info:
-      path: iPhoneMonitorApp/Info.plist
-      properties:
-        CFBundleDisplayName: iPhone Monitor
-        UILaunchScreen: {}
-        UISupportedInterfaceOrientations:
-          - UIInterfaceOrientationPortrait
-          - UIInterfaceOrientationLandscapeLeft
-          - UIInterfaceOrientationLandscapeRight
-        NSLocalNetworkUsageDescription: "Cho phép PC của bạn đọc thông số iPhone trong mạng nội bộ."
-        NSBonjourServices:
-          - _iphonemonitor._tcp
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.iphonemonitor.app
-        TARGETED_DEVICE_FAMILY: "1,2"
-        GENERATE_INFOPLIST_FILE: NO
+      - name: Tìm thư mục iOS (chứa project.yml)
+        run: |
+          echo "=== Cấu trúc repo ==="
+          find . -maxdepth 3 -not -path './.git/*' | sort
+          FILE=$(find . -name project.yml -not -path './.git/*' | head -n 1)
+          if [ -z "$FILE" ]; then
+            echo "::error::Không thấy file project.yml trong repo. Hãy đẩy cả thư mục iOS (gồm project.yml và iPhoneMonitorApp/*.swift) lên GitHub."
+            exit 1
+          fi
+          DIR=$(cd "$(dirname "$FILE")" && pwd)
+          echo "Tìm thấy: $DIR"
+          echo "IOS_DIR=$DIR" >> "$GITHUB_ENV"
+
+      - name: Cài XcodeGen
+        run: brew install xcodegen
+
+      - name: Tạo project Xcode từ project.yml
+        working-directory: ${{ env.IOS_DIR }}
+        run: xcodegen generate
+
+      - name: Build (không ký)
+        working-directory: ${{ env.IOS_DIR }}
+        run: |
+          xcodebuild \
+            -project iPhoneMonitor.xcodeproj \
+            -scheme iPhoneMonitor \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Đóng gói IPA
+        working-directory: ${{ env.IOS_DIR }}
+        run: |
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/iPhoneMonitor.app Payload/
+          zip -qry iPhoneMonitor-unsigned.ipa Payload
+
+      - name: Tải IPA lên Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: iPhoneMonitor-unsigned-ipa
+          path: ${{ env.IOS_DIR }}/iPhoneMonitor-unsigned.ipa
+          if-no-files-found: error
