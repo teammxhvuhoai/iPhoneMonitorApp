@@ -1,0 +1,11 @@
+# iOS
+iOS/*.xcodeproj/
+iOS/build/
+iOS/Payload/
+iOS/*.ipa
+iOS/iPhoneMonitorApp/Info.plist
+# PC
+PC/bin/
+PC/obj/
+.vs/
+*.user
